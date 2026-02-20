@@ -4,6 +4,7 @@ frontend/dist/
 
 # Build output
 server/mealtracker
+server/server
 server/mealtracker.db
 
 # OS files
