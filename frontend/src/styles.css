@@ -1,0 +1,548 @@
+/* ============================================
+   Meal Tracker — Red-oriented color scheme
+   Following Refactoring UI principles:
+   - Clear visual hierarchy
+   - Limited color palette
+   - Generous spacing
+   - Subtle shadows for depth
+   ============================================ */
+
+:root {
+  /* Red palette */
+  --red-50: #fef2f2;
+  --red-100: #fee2e2;
+  --red-200: #fecaca;
+  --red-300: #fca5a5;
+  --red-400: #f87171;
+  --red-500: #ef4444;
+  --red-600: #dc2626;
+  --red-700: #b91c1c;
+  --red-800: #991b1b;
+  --red-900: #7f1d1d;
+
+  /* Neutrals */
+  --gray-50: #fafafa;
+  --gray-100: #f5f5f5;
+  --gray-200: #e5e5e5;
+  --gray-300: #d4d4d4;
+  --gray-400: #a3a3a3;
+  --gray-500: #737373;
+  --gray-600: #525252;
+  --gray-700: #404040;
+  --gray-800: #262626;
+  --gray-900: #171717;
+
+  --bg: #fff;
+  --text: var(--gray-800);
+  --text-muted: var(--gray-500);
+  --border: var(--gray-200);
+  --radius: 8px;
+  --radius-lg: 12px;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  color: var(--text);
+  background: var(--gray-50);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---- Layout ---- */
+
+.app {
+  min-height: 100vh;
+}
+
+.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  color: var(--text-muted);
+  font-size: 1.125rem;
+}
+
+/* ---- Header ---- */
+
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 24px;
+  background: var(--red-700);
+  color: #fff;
+  box-shadow: var(--shadow);
+}
+
+.app-header h1 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.username {
+  font-size: 0.875rem;
+  opacity: 0.85;
+}
+
+/* ---- Buttons ---- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border-radius: var(--radius);
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  line-height: 1.4;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--red-600);
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--red-700);
+}
+
+.btn-secondary {
+  background: var(--red-50);
+  color: var(--red-700);
+  border: 1px solid var(--red-200);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--red-100);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: inherit;
+  padding: 6px 10px;
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.btn-sm {
+  padding: 4px 8px;
+  font-size: 0.8125rem;
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  font-size: 1.25rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--gray-600);
+}
+
+.btn-icon:hover {
+  background: var(--gray-100);
+  color: var(--red-600);
+}
+
+.btn-full {
+  width: 100%;
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  color: var(--red-600);
+  cursor: pointer;
+  font-weight: 500;
+  font-size: inherit;
+  padding: 0;
+}
+
+.link-btn:hover {
+  color: var(--red-700);
+  text-decoration: underline;
+}
+
+/* ---- Auth ---- */
+
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 24px;
+  background: linear-gradient(135deg, var(--red-50) 0%, var(--gray-50) 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 400px;
+  background: var(--bg);
+  border-radius: var(--radius-lg);
+  padding: 40px 32px;
+  box-shadow: var(--shadow-md);
+}
+
+.auth-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--red-700);
+  text-align: center;
+  margin-bottom: 4px;
+}
+
+.auth-subtitle {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  margin-bottom: 24px;
+}
+
+.error-msg {
+  background: var(--red-50);
+  color: var(--red-700);
+  border: 1px solid var(--red-200);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+  font-size: 0.875rem;
+  margin-bottom: 16px;
+}
+
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+
+.field input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.field input:focus {
+  outline: none;
+  border-color: var(--red-400);
+  box-shadow: 0 0 0 3px var(--red-100);
+}
+
+.auth-toggle {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+form .btn {
+  margin-top: 8px;
+}
+
+/* ---- Tracker ---- */
+
+.tracker {
+  max-width: 680px;
+  margin: 0 auto;
+  padding: 24px 16px 80px;
+}
+
+/* ---- Unsaved banner ---- */
+
+.unsaved-banner {
+  background: var(--red-50);
+  border: 1px solid var(--red-200);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.banner-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--red-700);
+  text-align: left;
+}
+
+.banner-icon {
+  font-size: 0.75rem;
+}
+
+.banner-dates {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px 12px;
+}
+
+.banner-date-btn {
+  padding: 4px 10px;
+  font-size: 0.8125rem;
+  background: var(--bg);
+  border: 1px solid var(--red-200);
+  border-radius: 999px;
+  color: var(--red-700);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.banner-date-btn:hover,
+.banner-date-btn.active {
+  background: var(--red-600);
+  color: #fff;
+  border-color: var(--red-600);
+}
+
+/* ---- Date nav ---- */
+
+.date-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.date-picker {
+  padding: 8px 12px;
+  font-size: 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  text-align: center;
+  min-width: 180px;
+}
+
+.date-picker:focus {
+  outline: none;
+  border-color: var(--red-400);
+  box-shadow: 0 0 0 3px var(--red-100);
+}
+
+.date-display {
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-bottom: 24px;
+}
+
+/* ---- Meal cards ---- */
+
+.meals {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.meal-card {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s;
+}
+
+.meal-card:focus-within {
+  border-color: var(--red-300);
+  box-shadow: var(--shadow);
+}
+
+.meal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.meal-name {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--gray-700);
+}
+
+.remove-btn {
+  color: var(--gray-400);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.remove-btn:hover {
+  color: var(--red-500);
+  background: var(--red-50);
+}
+
+.meal-input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  font-family: inherit;
+  line-height: 1.5;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  background: var(--gray-50);
+  color: var(--text);
+  resize: vertical;
+  min-height: 72px;
+  transition: border-color 0.15s;
+}
+
+.meal-input:focus {
+  outline: none;
+  border-color: var(--red-400);
+  background: var(--bg);
+  box-shadow: 0 0 0 3px var(--red-100);
+}
+
+.meal-input::placeholder {
+  color: var(--gray-400);
+}
+
+.char-count {
+  text-align: right;
+  font-size: 0.75rem;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
+/* ---- Add meal ---- */
+
+.add-meal {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.add-meal-input {
+  flex: 1;
+  padding: 10px 12px;
+  font-size: 0.9375rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.add-meal-input:focus {
+  outline: none;
+  border-color: var(--red-400);
+  box-shadow: 0 0 0 3px var(--red-100);
+}
+
+/* ---- Action bar ---- */
+
+.action-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border);
+}
+
+.save-btn {
+  padding: 10px 24px;
+  font-size: 0.9375rem;
+}
+
+.export-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.export-label {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+  margin-right: 4px;
+}
+
+.export-group .btn-ghost {
+  color: var(--gray-600);
+}
+
+.export-group .btn-ghost:hover {
+  color: var(--red-600);
+  background: var(--red-50);
+}
+
+/* ---- Responsive ---- */
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .tracker {
+    padding: 16px 12px 80px;
+  }
+
+  .date-nav {
+    gap: 8px;
+  }
+
+  .date-picker {
+    min-width: 150px;
+  }
+
+  .action-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .export-group {
+    justify-content: center;
+  }
+}
