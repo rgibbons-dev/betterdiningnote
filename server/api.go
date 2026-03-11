@@ -7,8 +7,11 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"sort"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/tealeg/xlsx/v3"
@@ -46,13 +49,28 @@ func (a *API) Handler() http.Handler {
 	// Serve static files
 	mux.Handle("/", http.FileServer(http.Dir("../frontend/dist")))
 
-	return withCORS(mux)
+	return withSecurityHeaders(withCORS(mux))
+}
+
+// corsAllowedOrigins returns the set of origins allowed to make credentialed
+// cross-origin requests. In production the Go server serves the SPA itself
+// so CORS is not needed; this allowlist covers the Vite dev server.
+func corsAllowedOrigins() map[string]bool {
+	allowed := map[string]bool{
+		"http://localhost:3000": true,
+		"http://127.0.0.1:3000": true,
+	}
+	if extra := os.Getenv("CORS_ORIGIN"); extra != "" {
+		allowed[extra] = true
+	}
+	return allowed
 }
 
 func withCORS(next http.Handler) http.Handler {
+	allowed := corsAllowedOrigins()
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
-		if origin != "" {
+		if origin != "" && allowed[origin] {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 			w.Header().Set("Access-Control-Allow-Credentials", "true")
 			w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
@@ -65,6 +83,53 @@ func withCORS(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
+func withSecurityHeaders(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("X-Frame-Options", "DENY")
+		w.Header().Set("Referrer-Policy", "strict-origin-when-cross-origin")
+		w.Header().Set("Content-Security-Policy", "default-src 'self'")
+		next.ServeHTTP(w, r)
+	})
+}
+
+// rateLimiter tracks per-IP request timestamps for auth endpoints.
+type rateLimiter struct {
+	mu       sync.Mutex
+	attempts map[string][]time.Time
+}
+
+func newRateLimiter() *rateLimiter {
+	return &rateLimiter{attempts: make(map[string][]time.Time)}
+}
+
+// allow returns true if the IP has not exceeded maxAttempts in the given window.
+func (rl *rateLimiter) allow(ip string, maxAttempts int, window time.Duration) bool {
+	rl.mu.Lock()
+	defer rl.mu.Unlock()
+
+	now := time.Now()
+	cutoff := now.Add(-window)
+
+	// Prune old entries
+	recent := rl.attempts[ip][:0]
+	for _, t := range rl.attempts[ip] {
+		if t.After(cutoff) {
+			recent = append(recent, t)
+		}
+	}
+
+	if len(recent) >= maxAttempts {
+		rl.attempts[ip] = recent
+		return false
+	}
+
+	rl.attempts[ip] = append(recent, now)
+	return true
+}
+
+var authLimiter = newRateLimiter()
 
 type contextKey string
 
@@ -109,7 +174,24 @@ func jsonOK(w http.ResponseWriter, data interface{}) {
 
 // Auth handlers
 
+func setSessionCookie(w http.ResponseWriter, sessionID string) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    sessionID,
+		Path:     "/",
+		MaxAge:   30 * 24 * 60 * 60,
+		HttpOnly: true,
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	})
+}
+
 func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
+	if !authLimiter.allow(r.RemoteAddr, 5, time.Minute) {
+		jsonError(w, "too many requests, try again later", http.StatusTooManyRequests)
+		return
+	}
+
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -124,18 +206,15 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 		jsonError(w, "username must be 3-64 characters", http.StatusBadRequest)
 		return
 	}
-	if len(req.Password) < 8 || len(req.Password) > 128 {
-		jsonError(w, "password must be 8-128 characters", http.StatusBadRequest)
+	if len(req.Password) < 8 || len(req.Password) > 72 {
+		jsonError(w, "password must be 8-72 characters", http.StatusBadRequest)
 		return
 	}
 
 	user, err := a.db.CreateUser(req.Username, req.Password)
 	if err != nil {
-		if strings.Contains(err.Error(), "UNIQUE") {
-			jsonError(w, "username already taken", http.StatusConflict)
-			return
-		}
-		jsonError(w, "failed to create user", http.StatusInternalServerError)
+		// Return a generic error to prevent username enumeration
+		jsonError(w, "registration failed", http.StatusBadRequest)
 		return
 	}
 
@@ -145,19 +224,16 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    sessionID,
-		Path:     "/",
-		MaxAge:   30 * 24 * 60 * 60,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
-
+	setSessionCookie(w, sessionID)
 	jsonOK(w, user)
 }
 
 func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
+	if !authLimiter.allow(r.RemoteAddr, 5, time.Minute) {
+		jsonError(w, "too many requests, try again later", http.StatusTooManyRequests)
+		return
+	}
+
 	var req struct {
 		Username string `json:"username"`
 		Password string `json:"password"`
@@ -179,15 +255,7 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "session",
-		Value:    sessionID,
-		Path:     "/",
-		MaxAge:   30 * 24 * 60 * 60,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
-
+	setSessionCookie(w, sessionID)
 	jsonOK(w, user)
 }
 

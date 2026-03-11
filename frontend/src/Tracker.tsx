@@ -65,6 +65,11 @@ export default function Tracker() {
     if (cache[date]) return; // Already cached
 
     const meals = await api.getMeals(date);
+
+    // Guard against stale responses: if the user navigated away while the
+    // fetch was in flight, discard the result.
+    if (date !== selectedDate()) return;
+
     const types = mealTypes();
 
     // Build entry list from meal types, merging with server data

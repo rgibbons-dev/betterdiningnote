@@ -17,6 +17,7 @@ func main() {
 		log.Fatalf("failed to open database: %v", err)
 	}
 	defer db.Close()
+	db.StartSessionCleanup()
 
 	api := NewAPI(db)
 

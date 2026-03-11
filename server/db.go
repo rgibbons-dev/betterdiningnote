@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -51,6 +52,28 @@ func NewDB(path string) (*DB, error) {
 
 func (db *DB) Close() error {
 	return db.conn.Close()
+}
+
+// StartSessionCleanup runs a background goroutine that deletes expired
+// sessions every hour, preventing unbounded table growth.
+func (db *DB) StartSessionCleanup() {
+	go func() {
+		ticker := time.NewTicker(1 * time.Hour)
+		defer ticker.Stop()
+		for range ticker.C {
+			result, err := db.conn.Exec(
+				"DELETE FROM sessions WHERE expires_at < ?",
+				time.Now().UTC().Format(time.RFC3339),
+			)
+			if err != nil {
+				log.Printf("session cleanup error: %v", err)
+				continue
+			}
+			if n, _ := result.RowsAffected(); n > 0 {
+				log.Printf("cleaned up %d expired sessions", n)
+			}
+		}
+	}()
 }
 
 func (db *DB) migrate() error {
