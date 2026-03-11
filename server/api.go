@@ -174,15 +174,20 @@ func jsonOK(w http.ResponseWriter, data interface{}) {
 
 // Auth handlers
 
-func setSessionCookie(w http.ResponseWriter, sessionID string) {
+func setSessionCookie(w http.ResponseWriter, r *http.Request, sessionID string) {
+	secure := r.TLS != nil || r.Header.Get("X-Forwarded-Proto") == "https"
+	sameSite := http.SameSiteStrictMode
+	if !secure {
+		sameSite = http.SameSiteLaxMode
+	}
 	http.SetCookie(w, &http.Cookie{
 		Name:     "session",
 		Value:    sessionID,
 		Path:     "/",
 		MaxAge:   30 * 24 * 60 * 60,
 		HttpOnly: true,
-		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		Secure:   secure,
+		SameSite: sameSite,
 	})
 }
 
@@ -224,7 +229,7 @@ func (a *API) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setSessionCookie(w, sessionID)
+	setSessionCookie(w, r, sessionID)
 	jsonOK(w, user)
 }
 
@@ -255,7 +260,7 @@ func (a *API) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	setSessionCookie(w, sessionID)
+	setSessionCookie(w, r, sessionID)
 	jsonOK(w, user)
 }
 
